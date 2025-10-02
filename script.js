@@ -1,23 +1,5 @@
 const { ipcRenderer } = require('electron');
 
-class GoalItem {
-    constructor(text, level, parentId = null) {
-        this.id = this.generateId();
-        this.text = text;
-        this.level = level;
-        this.parentId = parentId;
-        this.completed = false;
-        this.created = new Date().toISOString();
-        this.targetDate = null;
-        this.completedAt = null;
-        this.children = [];
-    }
-    
-    generateId() {
-        return 'goal_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    }
-}
-
 class TodoItem {
     constructor(text, priority = 'medium', goalId = null, isDaily = false) {
         this.id = this.generateId();
@@ -38,13 +20,12 @@ class TodoItem {
 
 class TodoApp {
     constructor() {
-        this.activeGoals = [];
-        this.completedGoals = [];
         this.activeTodos = [];
         this.completedTodos = [];
         this.lastResetDate = new Date().toISOString().split('T')[0];
         this.deletedItem = null;
         this.dataFolderInfo = '';
+        this.goalGraph = null;
         
         this.init();
     }
@@ -52,31 +33,46 @@ class TodoApp {
     async init() {
         await this.loadData();
         this.setupEventListeners();
-        this.renderGoals();
         this.renderTodos();
         this.updateGoalSelect();
         this.checkDailyReset();
+        
+        // Initialize goal graph after a short delay to ensure DOM is ready
+        setTimeout(() => {
+            this.initializeGoalGraph();
+        }, 100);
+    }
+    
+    initializeGoalGraph() {
+        // Check if goal graph elements exist
+        if (typeof GoalGraph !== 'undefined' && typeof GraphVisualizer !== 'undefined') {
+            this.goalGraph = new GoalGraph();
+            this.visualizer = new GraphVisualizer('graph', this.goalGraph);
+            
+            // Override the updateGoalSelect method to use our goal graph
+            window.updateGoalSelect = () => this.updateGoalSelect();
+            
+            console.log('Goal Graph initialized successfully');
+        } else {
+            console.error('Goal Graph classes not found');
+        }
     }
     
     async loadData() {
         try {
-            const [goalsResult, tasksResult] = await Promise.all([
-                this.loadDataFromFile('goals', 'active'),
+            const [tasksResult] = await Promise.all([
                 this.loadDataFromFile('tasks', 'active')
             ]);
             
-            if (goalsResult.success) this.activeGoals = goalsResult.data;
             if (tasksResult.success) this.activeTodos = tasksResult.data;
             
-            const [completedGoalsResult, completedTasksResult] = await Promise.all([
-                this.loadDataFromFile('goals', 'completed'),
+            const [completedTasksResult] = await Promise.all([
                 this.loadDataFromFile('tasks', 'completed')
             ]);
             
-            if (completedGoalsResult.success) this.completedGoals = completedGoalsResult.data;
             if (completedTasksResult.success) this.completedTodos = completedTasksResult.data;
             
-            console.log('Data loaded successfully from files');
+            console.log('Todo data loaded successfully from files');
         } catch (error) {
             console.error('Error loading data:', error);
             this.showNotification('Error loading data from files', 'error');
@@ -85,20 +81,6 @@ class TodoApp {
     
     async loadDataFromFile(dataType, status) {
         return await ipcRenderer.invoke('load-data', dataType, status);
-    }
-    
-    async saveGoal(goal, isNew = true) {
-        try {
-            if (isNew) {
-                this.activeGoals.push(goal);
-            }
-            
-            const result = await ipcRenderer.invoke('save-data', 'goals', this.activeGoals, 'active');
-            return result.success;
-        } catch (error) {
-            console.error('Error saving goal:', error);
-        }
-        return false;
     }
     
     async saveTodo(todo, isNew = true) {
@@ -111,50 +93,6 @@ class TodoApp {
             return result.success;
         } catch (error) {
             console.error('Error saving todo:', error);
-        }
-        return false;
-    }
-    
-    async completeGoal(goalId) {
-        try {
-            const goal = this.activeGoals.find(g => g.id === goalId);
-            if (goal) {
-                goal.completed = true;
-                goal.completedAt = new Date().toISOString();
-                this.activeGoals = this.activeGoals.filter(g => g.id !== goalId);
-                this.completedGoals.push(goal);
-                
-                await Promise.all([
-                    ipcRenderer.invoke('save-data', 'goals', this.activeGoals, 'active'),
-                    ipcRenderer.invoke('save-data', 'goals', this.completedGoals, 'completed')
-                ]);
-                
-                return true;
-            }
-        } catch (error) {
-            console.error('Error completing goal:', error);
-        }
-        return false;
-    }
-    
-    async reactivateGoal(goalId) {
-        try {
-            const goal = this.completedGoals.find(g => g.id === goalId);
-            if (goal) {
-                goal.completed = false;
-                goal.completedAt = null;
-                this.completedGoals = this.completedGoals.filter(g => g.id !== goalId);
-                this.activeGoals.push(goal);
-                
-                await Promise.all([
-                    ipcRenderer.invoke('save-data', 'goals', this.activeGoals, 'active'),
-                    ipcRenderer.invoke('save-data', 'goals', this.completedGoals, 'completed')
-                ]);
-                
-                return true;
-            }
-        } catch (error) {
-            console.error('Error reactivating goal:', error);
         }
         return false;
     }
@@ -208,23 +146,6 @@ class TodoApp {
         return false;
     }
     
-    async deleteGoal(goalId) {
-        try {
-            this.activeGoals = this.activeGoals.filter(g => g.id !== goalId);
-            this.completedGoals = this.completedGoals.filter(g => g.id !== goalId);
-            
-            await Promise.all([
-                ipcRenderer.invoke('save-data', 'goals', this.activeGoals, 'active'),
-                ipcRenderer.invoke('save-data', 'goals', this.completedGoals, 'completed')
-            ]);
-            
-            return true;
-        } catch (error) {
-            console.error('Error deleting goal:', error);
-        }
-        return false;
-    }
-    
     async deleteTodo(todoId) {
         try {
             const todo = [...this.activeTodos, ...this.completedTodos].find(t => t.id === todoId);
@@ -246,11 +167,6 @@ class TodoApp {
     }
     
     setupEventListeners() {
-        // Add goal button
-        document.getElementById('add-goal-btn').addEventListener('click', () => {
-            this.showGoalModal();
-        });
-        
         // Add task button
         document.getElementById('add-task-btn').addEventListener('click', () => {
             this.addTask();
@@ -263,184 +179,10 @@ class TodoApp {
             }
         });
         
-        // Goal modal events
-        document.querySelector('.close-modal').addEventListener('click', () => {
-            this.hideGoalModal();
-        });
-        
-        document.getElementById('cancel-goal-btn').addEventListener('click', () => {
-            this.hideGoalModal();
-        });
-        
-        document.getElementById('save-goal-btn').addEventListener('click', () => {
-            this.saveGoalFromModal();
-        });
-        
-        // Goal level change
-        document.querySelectorAll('input[name="goal-level"]').forEach(radio => {
-            radio.addEventListener('change', () => {
-                this.updateParentGoalOptions();
-            });
-        });
-        
-        // Goal description enter key
-        document.getElementById('goal-description').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                this.saveGoalFromModal();
-            }
-        });
-        
-        // Click outside modal to close
-        document.getElementById('goal-modal').addEventListener('click', (e) => {
-            if (e.target.id === 'goal-modal') {
-                this.hideGoalModal();
-            }
-        });
-        
         // Notification action
         document.getElementById('notification-action').addEventListener('click', () => {
             this.handleNotificationAction();
         });
-    }
-    
-    showGoalModal() {
-        document.getElementById('goal-modal').style.display = 'flex';
-        document.getElementById('goal-description').focus();
-        this.updateParentGoalOptions();
-    }
-    
-    hideGoalModal() {
-        document.getElementById('goal-modal').style.display = 'none';
-        document.getElementById('goal-description').value = '';
-        document.querySelector('input[name="goal-level"][value="monthly"]').checked = true;
-        document.getElementById('parent-goal').value = '';
-    }
-    
-    updateParentGoalOptions() {
-        const level = document.querySelector('input[name="goal-level"]:checked').value;
-        const parentSelect = document.getElementById('parent-goal');
-        const parentGroup = document.getElementById('parent-goal-group');
-        
-        parentSelect.innerHTML = '<option value="">No parent goal</option>';
-        
-        if (level === 'someday') {
-            parentGroup.style.display = 'none';
-            return;
-        } else {
-            parentGroup.style.display = 'block';
-        }
-        
-        let parentLevels = [];
-        
-        switch(level) {
-            case '5year':
-                parentLevels = ['someday'];
-                break;
-            case '1year':
-                parentLevels = ['5year'];
-                break;
-            case 'monthly':
-                parentLevels = ['1year'];
-                break;
-            case 'weekly':
-                parentLevels = ['monthly'];
-                break;
-        }
-        
-        this.activeGoals
-            .filter(goal => parentLevels.includes(goal.level))
-            .forEach(goal => {
-                const option = document.createElement('option');
-                option.value = goal.id;
-                option.textContent = goal.text;
-                parentSelect.appendChild(option);
-            });
-    }
-    
-    async saveGoalFromModal() {
-        const description = document.getElementById('goal-description').value.trim();
-        const level = document.querySelector('input[name="goal-level"]:checked').value;
-        const parentId = document.getElementById('parent-goal').value || null;
-        
-        if (!description) {
-            this.showNotification('Please enter a goal description', 'warning');
-            return;
-        }
-        
-        if (level !== 'someday' && !parentId) {
-            const result = await ipcRenderer.invoke('show-message-box', {
-                type: 'question',
-                buttons: ['Continue', 'Cancel'],
-                defaultId: 1,
-                title: 'No Parent Goal',
-                message: 'This goal level typically has a parent. Are you sure you want to continue without a parent?'
-            });
-            
-            if (result.response === 1) return;
-        }
-        
-        const newGoal = new GoalItem(description, level, parentId);
-        const success = await this.saveGoal(newGoal, true);
-        
-        if (success) {
-            this.renderGoals();
-            this.updateGoalSelect();
-            this.hideGoalModal();
-            this.showNotification('✓ Goal added successfully!', 'success', 3000);
-        } else {
-            this.showNotification('Error saving goal', 'error');
-        }
-    }
-    
-    async toggleGoalCompletion(goalId) {
-        const goal = this.activeGoals.find(g => g.id === goalId) || this.completedGoals.find(g => g.id === goalId);
-        if (goal) {
-            if (goal.completed) {
-                await this.reactivateGoal(goalId);
-            } else {
-                await this.completeGoal(goalId);
-            }
-            this.renderGoals();
-            this.updateGoalSelect();
-        }
-    }
-    
-    async deleteGoalWithConfirmation(goalId) {
-        const result = await ipcRenderer.invoke('show-message-box', {
-            type: 'question',
-            buttons: ['Delete', 'Cancel'],
-            defaultId: 1,
-            title: 'Delete Goal',
-            message: 'Are you sure you want to delete this goal and all its linked tasks?'
-        });
-        
-        if (result.response === 1) return;
-        
-        const goalsToDelete = [goalId];
-        
-        const findChildren = (parentId) => {
-            [...this.activeGoals, ...this.completedGoals].forEach(goal => {
-                if (goal.parentId === parentId) {
-                    goalsToDelete.push(goal.id);
-                    findChildren(goal.id);
-                }
-            });
-        };
-        
-        findChildren(goalId);
-        
-        for (const goalIdToDelete of goalsToDelete) {
-            await this.deleteGoal(goalIdToDelete);
-            
-            const linkedTodos = [...this.activeTodos, ...this.completedTodos].filter(todo => todo.goalId === goalIdToDelete);
-            for (const todo of linkedTodos) {
-                await this.deleteTodo(todo.id);
-            }
-        }
-        
-        this.renderGoals();
-        this.renderTodos();
-        this.updateGoalSelect();
     }
     
     async addTask() {
@@ -509,117 +251,6 @@ class TodoApp {
         document.getElementById('task-input').focus();
     }
     
-    renderGoals() {
-        const goalsTree = document.getElementById('goals-tree');
-        goalsTree.innerHTML = '';
-        
-        if (this.activeGoals.length === 0 && this.completedGoals.length === 0) {
-            goalsTree.innerHTML = '<p class="no-items">No goals yet. Add your first goal!</p>';
-            return;
-        }
-        
-        const activeGoalMap = new Map();
-        const activeRootGoals = [];
-        
-        this.activeGoals.forEach(goal => {
-            activeGoalMap.set(goal.id, { ...goal, children: [] });
-        });
-        
-        this.activeGoals.forEach(goal => {
-            if (goal.parentId && activeGoalMap.has(goal.parentId)) {
-                activeGoalMap.get(goal.parentId).children.push(activeGoalMap.get(goal.id));
-            } else {
-                activeRootGoals.push(activeGoalMap.get(goal.id));
-            }
-        });
-        
-        const levelOrder = { 'someday': 0, '5year': 1, '1year': 2, 'monthly': 3, 'weekly': 4 };
-        activeRootGoals.sort((a, b) => levelOrder[a.level] - levelOrder[b.level]);
-        
-        if (activeRootGoals.length > 0) {
-            const activeHeader = document.createElement('div');
-            activeHeader.className = 'goals-section-header';
-            activeHeader.innerHTML = '<h3>Active Goals</h3>';
-            goalsTree.appendChild(activeHeader);
-            
-            activeRootGoals.forEach(goal => {
-                goalsTree.appendChild(this.renderGoalNode(goal, 'active'));
-            });
-        }
-        
-        if (this.completedGoals.length > 0) {
-            const completedHeader = document.createElement('div');
-            completedHeader.className = 'goals-section-header completed';
-            completedHeader.innerHTML = '<h3>Completed Goals</h3>';
-            goalsTree.appendChild(completedHeader);
-            
-            this.completedGoals.forEach(goal => {
-                goalsTree.appendChild(this.renderGoalNode(goal, 'completed'));
-            });
-        }
-    }
-    
-    renderGoalNode(goal, status) {
-        const nodeElement = document.createElement('div');
-        nodeElement.className = 'goal-node';
-        
-        const nodeContent = document.createElement('div');
-        nodeContent.className = `goal-node-content ${status}`;
-        nodeContent.dataset.id = goal.id;
-        
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'goal-checkbox';
-        checkbox.checked = status === 'completed';
-        checkbox.addEventListener('change', () => {
-            this.toggleGoalCompletion(goal.id);
-        });
-        
-        const levelIndicator = document.createElement('span');
-        levelIndicator.className = `goal-level-indicator level-${goal.level}`;
-        levelIndicator.title = this.getGoalLevelName(goal.level);
-        
-        const goalText = document.createElement('span');
-        goalText.className = `goal-text ${status === 'completed' ? 'goal-completed' : ''}`;
-        goalText.textContent = goal.text;
-        
-        const goalActions = document.createElement('div');
-        goalActions.className = 'goal-actions';
-        
-        const deleteBtn = document.createElement('span');
-        deleteBtn.className = 'goal-action';
-        deleteBtn.textContent = '🗑️';
-        deleteBtn.title = 'Delete goal';
-        deleteBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            this.deleteGoalWithConfirmation(goal.id);
-        });
-        
-        goalActions.appendChild(deleteBtn);
-        
-        nodeContent.appendChild(checkbox);
-        nodeContent.appendChild(levelIndicator);
-        nodeContent.appendChild(goalText);
-        nodeContent.appendChild(goalActions);
-        
-        nodeElement.appendChild(nodeContent);
-        
-        if (status === 'active' && goal.children && goal.children.length > 0) {
-            const childrenContainer = document.createElement('div');
-            childrenContainer.className = 'goal-children';
-            
-            goal.children.forEach(child => {
-                childrenContainer.appendChild(this.renderGoalNode(child, 'active'));
-            });
-            
-            nodeElement.appendChild(childrenContainer);
-        }
-        
-        return nodeElement;
-    }
-    
-   // ... (all your existing code remains the same until the renderTodos method)
-
     renderTodos() {
         const tasksList = document.getElementById('tasks-list');
         tasksList.innerHTML = '';
@@ -676,8 +307,6 @@ class TodoApp {
             });
         }
     }
-
-// ... (the rest of your existing code remains the same)
     
     createTaskElement(todo, status) {
         const taskItem = document.createElement('div');
@@ -735,16 +364,16 @@ class TodoApp {
         const taskMeta = document.createElement('div');
         taskMeta.className = 'task-meta';
         
-        if (todo.goalId) {
-            const goal = [...this.activeGoals, ...this.completedGoals].find(g => g.id === todo.goalId);
+        if (todo.goalId && this.goalGraph) {
+            const goal = this.goalGraph.getNode(todo.goalId);
             if (goal) {
                 const goalLink = document.createElement('span');
                 goalLink.className = 'goal-link';
-                goalLink.textContent = this.getGoalIcon(goal.level) + ' ' + 
-                    (goal.text.length > 20 ? goal.text.substring(0, 20) + '...' : goal.text);
-                goalLink.title = `${this.getGoalLevelName(goal.level)}: ${goal.text}`;
+                goalLink.textContent = this.getGoalIcon(goal.category) + ' ' + 
+                    (goal.id.length > 20 ? goal.id.substring(0, 20) + '...' : goal.id);
+                goalLink.title = `${this.getGoalCategoryName(goal.category)}: ${goal.id}`;
                 goalLink.addEventListener('click', () => {
-                    this.highlightGoal(goal.id);
+                    this.highlightGoalInGraph(goal.id);
                 });
                 
                 taskMeta.appendChild(goalLink);
@@ -784,19 +413,34 @@ class TodoApp {
         return taskItem;
     }
     
-    highlightGoal(goalId) {
-        document.querySelectorAll('.goal-node-content').forEach(node => {
-            node.style.background = '';
-        });
-        
-        const goalNode = document.querySelector(`.goal-node-content[data-id="${goalId}"]`);
-        if (goalNode) {
-            goalNode.style.background = 'var(--highlight-color)';
-            goalNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    highlightGoalInGraph(goalId) {
+        if (this.visualizer) {
+            // Show the sidebar if it's collapsed
+            document.getElementById('sidebar').classList.remove('collapsed');
             
-            setTimeout(() => {
-                goalNode.style.background = '';
-            }, 3000);
+            // Select and show the goal info
+            const goal = this.goalGraph.getNode(goalId);
+            if (goal) {
+                this.visualizer.showNodeInfo(goal);
+                this.visualizer.highlightConnections(goalId);
+                
+                // Center the view on the goal
+                this.visualizer.centerNode(goal);
+            }
+        }
+    }
+    
+    updateGoalSelect() {
+        const goalSelect = document.getElementById('goal-select');
+        goalSelect.innerHTML = '<option value="">None</option>';
+        
+        if (this.goalGraph) {
+            this.goalGraph.getAllNodes().forEach(goal => {
+                const option = document.createElement('option');
+                option.value = goal.id;
+                option.textContent = goal.id;
+                goalSelect.appendChild(option);
+            });
         }
     }
     
@@ -822,40 +466,28 @@ class TodoApp {
         return tooltips[priority] || 'Priority';
     }
     
-    getGoalIcon(level) {
+    getGoalIcon(category) {
         const icons = {
-            'someday': '🌟',
-            '5year': '📅',
-            '1year': '🎯',
-            'monthly': '📋',
-            'weekly': '📆'
+            'personal': '🌟',
+            'work': '💼',
+            'learning': '📚',
+            'health': '❤️',
+            'financial': '💰'
         };
         
-        return icons[level] || '🎯';
+        return icons[category] || '🎯';
     }
     
-    getGoalLevelName(level) {
+    getGoalCategoryName(category) {
         const names = {
-            'someday': '🌟 Someday Goal',
-            '5year': '📅 5-Year Goal',
-            '1year': '🎯 1-Year Goal',
-            'monthly': '📋 Monthly Focus',
-            'weekly': '📆 Weekly Target'
+            'personal': 'Personal',
+            'work': 'Career',
+            'learning': 'Learning',
+            'health': 'Health',
+            'financial': 'Financial'
         };
         
-        return names[level] || 'Goal';
-    }
-    
-    updateGoalSelect() {
-        const goalSelect = document.getElementById('goal-select');
-        goalSelect.innerHTML = '<option value="">None</option>';
-        
-        this.activeGoals.forEach(goal => {
-            const option = document.createElement('option');
-            option.value = goal.id;
-            option.textContent = goal.text;
-            goalSelect.appendChild(option);
-        });
+        return names[category] || 'Goal';
     }
     
     checkDailyReset() {
@@ -906,13 +538,8 @@ class TodoApp {
     
     async handleNotificationAction() {
         if (this.deletedItem) {
-            if (this.deletedItem.hasOwnProperty('level')) {
-                await this.saveGoal(this.deletedItem, true);
-            } else {
-                await this.saveTodo(this.deletedItem, true);
-            }
+            await this.saveTodo(this.deletedItem, true);
             
-            this.renderGoals();
             this.renderTodos();
             this.updateGoalSelect();
             

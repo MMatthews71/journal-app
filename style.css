@@ -18,13 +18,6 @@
     --medium-priority: #d69e2e;
     --low-priority: #38a169;
     
-    /* Goal Level Colors */
-    --someday: #805ad5;
-    --five-year: #3182ce;
-    --one-year: #38a169;
-    --monthly: #d69e2e;
-    --weekly: #ed8936;
-    
     /* Spacing */
     --spacing-xl: 24px;
     --spacing-l: 16px;
@@ -450,133 +443,13 @@ body {
     margin-right: 6px;
 }
 
-/* Goals Panel */
+/* Goals Panel - Updated for Goal Graph */
 .goals-container {
-    padding: var(--spacing-l);
+    padding: 0;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
-    gap: var(--spacing-l);
-}
-
-.goals-tree {
-    flex-grow: 1;
-    overflow-y: auto;
-    min-height: 400px;
-    padding: var(--spacing-s);
-    background: var(--hover-bg);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-}
-
-.goals-section-header {
-    margin: var(--spacing-l) 0 var(--spacing-m) 0;
-    padding-bottom: var(--spacing-s);
-    border-bottom: 2px solid var(--border-color);
-}
-
-.goals-section-header h3 {
-    font-size: 1rem;
-    color: var(--text-color);
-    font-weight: 600;
-}
-
-.goals-section-header.completed h3 {
-    color: var(--text-completed);
-}
-
-.goal-node {
-    margin-bottom: var(--spacing-xs);
-    position: relative;
-}
-
-.goal-node-content {
-    padding: var(--spacing-s);
-    border-radius: var(--border-radius);
-    border: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    transition: all 0.3s ease;
-    cursor: pointer;
-    background: var(--card-bg);
-    margin-bottom: var(--spacing-xs);
-}
-
-.goal-node-content:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--accent-color);
-}
-
-.goal-node-content.completed {
-    opacity: 0.7;
-    background-color: #f0fff4;
-    border-color: #c6f6d5;
-}
-
-.goal-checkbox {
-    margin-right: var(--spacing-s);
-    cursor: pointer;
-}
-
-.goal-text {
-    flex-grow: 1;
-    font-size: 0.9rem;
-    font-weight: 500;
-    line-height: 1.4;
-}
-
-.goal-completed {
-    color: var(--text-completed);
-    text-decoration: line-through;
-}
-
-.goal-level-indicator {
-    display: inline-block;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    margin-right: var(--spacing-s);
-    border: 2px solid white;
-    box-shadow: var(--shadow-sm);
-}
-
-.level-someday { background-color: var(--someday); }
-.level-5year { background-color: var(--five-year); }
-.level-1year { background-color: var(--one-year); }
-.level-monthly { background-color: var(--monthly); }
-.level-weekly { background-color: var(--weekly); }
-
-.goal-actions {
-    display: flex;
-    gap: var(--spacing-xs);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.goal-node-content:hover .goal-actions {
-    opacity: 1;
-}
-
-.goal-action {
-    cursor: pointer;
-    padding: 2px;
-    border-radius: 3px;
-    transition: all 0.2s ease;
-    background: var(--card-bg);
-    border: 1px solid var(--border-color);
-    font-size: 0.8rem;
-}
-
-.goal-action:hover {
-    background: var(--accent-color);
-    color: white;
-}
-
-.goal-children {
-    margin-left: var(--spacing-m);
-    padding-left: var(--spacing-m);
-    border-left: 2px solid var(--border-color);
-    margin-top: var(--spacing-xs);
+    height: 100%;
 }
 
 /* Buttons */
@@ -613,141 +486,6 @@ body {
 .btn-small {
     padding: 4px 8px;
     font-size: 0.7rem;
-}
-
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
-    z-index: 1000;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-content {
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius-lg);
-    width: 90%;
-    max-width: 500px;
-    max-height: 90vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-lg);
-    animation: modalAppear 0.3s ease;
-    border: 1px solid var(--border-color);
-}
-
-@keyframes modalAppear {
-    from {
-        opacity: 0;
-        transform: scale(0.9) translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: scale(1) translateY(0);
-    }
-}
-
-.modal-header {
-    padding: var(--spacing-l);
-    border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-}
-
-.modal-header h3 {
-    color: var(--header-color);
-    font-weight: 600;
-    font-size: 1.2rem;
-}
-
-.close-modal {
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-light);
-    padding: var(--spacing-xs);
-    transition: color 0.2s;
-}
-
-.close-modal:hover {
-    color: var(--text-color);
-}
-
-.modal-body {
-    padding: var(--spacing-l);
-}
-
-.modal-footer {
-    padding: var(--spacing-l);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--spacing-m);
-}
-
-.form-group {
-    margin-bottom: var(--spacing-l);
-}
-
-.form-group label {
-    display: block;
-    margin-bottom: var(--spacing-s);
-    font-weight: 600;
-    color: var(--text-color);
-    font-size: 0.9rem;
-}
-
-.form-input {
-    width: 100%;
-    padding: var(--spacing-s);
-    border: 1px solid var(--border-color);
-    border-radius: var(--border-radius);
-    font-size: 0.9rem;
-    transition: all 0.3s ease;
-    background: white;
-}
-
-.form-input:focus {
-    outline: none;
-    border-color: var(--accent-color);
-    box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
-}
-
-.goal-level-options {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-s);
-}
-
-.radio-option {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    padding: var(--spacing-s);
-    border-radius: var(--border-radius);
-    transition: all 0.2s ease;
-    border: 1px solid var(--border-color);
-    background: var(--card-bg);
-}
-
-.radio-option:hover {
-    background-color: var(--hover-bg);
-    border-color: var(--accent-color);
-}
-
-.radio-option input {
-    margin-right: var(--spacing-s);
-}
-
-.radio-label {
-    font-size: 0.9rem;
-    font-weight: 500;
 }
 
 /* Notification */
@@ -807,6 +545,7 @@ body {
     
     .goals-panel {
         order: 2;
+        height: 500px; /* Fixed height on mobile */
     }
     
     .tasks-grid {
@@ -830,11 +569,6 @@ body {
     .task-input-container.compact .option-row {
         flex-direction: column;
         gap: var(--spacing-s);
-    }
-    
-    .modal-content {
-        width: 95%;
-        margin: var(--spacing-m);
     }
     
     .task-item {

@@ -4,11 +4,11 @@ class GoalGraph {
         this.nodes = new Map();
         this.links = [];
         this.categories = {
-            personal: { color: "#7289da", name: "Personal" },
-            work: { color: "#43b581", name: "Work" },
-            learning: { color: "#faa61a", name: "Learning" },
-            health: { color: "#ed4245", name: "Health" },
-            financial: { color: "#9b59b6", name: "Financial" }
+            personal: { color: "#6366f1", name: "Personal" },
+            work: { color: "#10b981", name: "Career" },
+            learning: { color: "#f59e0b", name: "Learning" },
+            health: { color: "#ef4444", name: "Health" },
+            financial: { color: "#8b5cf6", name: "Financial" }
         };
     }
 
@@ -29,6 +29,12 @@ class GoalGraph {
         };
 
         this.nodes.set(id, newNode);
+        
+        // Update goal select in todo system if it exists
+        if (typeof window.updateGoalSelect === 'function') {
+            window.updateGoalSelect();
+        }
+        
         return true;
     }
 
@@ -87,6 +93,12 @@ class GoalGraph {
         );
 
         this.nodes.delete(id);
+        
+        // Update goal select in todo system if it exists
+        if (typeof window.updateGoalSelect === 'function') {
+            window.updateGoalSelect();
+        }
+        
         return true;
     }
 
@@ -96,12 +108,23 @@ class GoalGraph {
         const node = this.nodes.get(id);
         node.description = description;
         node.category = category;
+        
+        // Update goal select in todo system if it exists
+        if (typeof window.updateGoalSelect === 'function') {
+            window.updateGoalSelect();
+        }
+        
         return true;
     }
 
     clear() {
         this.nodes.clear();
         this.links = [];
+        
+        // Update goal select in todo system if it exists
+        if (typeof window.updateGoalSelect === 'function') {
+            window.updateGoalSelect();
+        }
     }
 
     getNode(id) {

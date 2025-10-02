@@ -12,7 +12,7 @@
     "author": "Your Name",
     "license": "MIT",
     "devDependencies": {
-      "electron": "^27.0.0",
+      "electron": "^25.9.8",
       "electron-builder": "^24.6.4"
     },
     "build": {
