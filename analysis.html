@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mindful Journal - Analysis Tab</title>
+    <link rel="stylesheet" href="analysis.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Navigation -->
+        <nav class="main-nav">
+            <div class="nav-links">
+                <a href="index.html" class="nav-link" data-tab="todo">
+                    <span class="nav-text">Todo</span>
+                </a>
+                <a href="journal.html" class="nav-link" data-tab="journal">
+                    <span class="nav-text">Journal</span>
+                </a>
+                <a href="lkm.html" class="nav-link" data-tab="lkm">
+                    <span class="nav-text">Meditation</span>
+                </a>
+                <a href="analysis.html" class="nav-link active" data-tab="analysis">
+                    <span class="nav-text">Analysis</span>
+                </a>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Left Panel - Entry Selection & Full Content -->
+            <section class="entries-panel">
+                <div class="panel-header">
+                    <h2>📔 Personal Entries</h2>
+                    <p>Select an entry to analyze</p>
+                </div>
+                
+                <div class="entries-container">
+                    <!-- Refresh Button -->
+                    <div class="refresh-section">
+                        <button id="refresh-btn" class="btn-secondary">🔄 Refresh</button>
+                        <span id="entry-count" class="entry-count">No entries</span>
+                    </div>
+                    
+                    <!-- Entry List -->
+                    <div class="entries-list-container">
+                        <div id="entries-list" class="entries-list">
+                            <!-- Entries will be populated by JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <!-- Full Entry Content -->
+                    <div class="full-entry-section">
+                        <div class="section-header">
+                            <h3>📖 Full Entry Content</h3>
+                            <div class="entry-meta" id="entry-meta">
+                                Select an entry to view content
+                            </div>
+                        </div>
+                        <div id="full-entry-content" class="full-entry-content">
+                            <div class="no-entry-selected">
+                                <div class="placeholder-icon">📝</div>
+                                <p>Select a journal entry from the list above to begin your analysis.</p>
+                                <p class="placeholder-sub">The full content will appear here for easy reference while you analyze.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right Panel - Analysis Workspace -->
+            <section class="analysis-panel">
+                <div class="panel-header">
+                    <h2>🔍 Critical Self-Analysis Protocol</h2>
+                    <p>Move from self-criticism to structured problem-solving</p>
+                    <div id="analysis-status" class="analysis-status">Select an entry to begin analysis</div>
+                </div>
+                
+                <div class="analysis-container">
+                    <!-- Analysis Tabs -->
+                    <div class="analysis-tabs">
+                        <button class="tab-btn active" data-tab="facts">1. 📋 Facts</button>
+                        <button class="tab-btn" data-tab="judgment">2. 🔍 Judgment</button>
+                        <button class="tab-btn" data-tab="deconstruct">3. 🔧 Deconstruct</button>
+                        <button class="tab-btn" data-tab="reframe">4. 🔄 Reframe</button>
+                        <button class="tab-btn" data-tab="plan">5. 🎯 Plan</button>
+                        <button class="tab-btn" data-tab="conclusion">6. 💡 Conclusion</button>
+                    </div>
+                    
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <!-- Step 1: Facts -->
+                        <div id="facts-tab" class="tab-pane active">
+                            <div class="step-header">
+                                <h3>Step 1: Document the Raw Facts</h3>
+                                <p class="instructions">Describe what happened using only observable facts. No emotions, no interpretations, no judgments. Just what you saw, heard, and did.</p>
+                            </div>
+                            
+                            <div class="analysis-input-section">
+                                <textarea id="facts-text" class="analysis-textarea" placeholder="Write the facts here..."></textarea>
+                                
+                                <div class="examples-section">
+                                    <h4>💡 Fact vs Interpretation</h4>
+                                    <div class="examples-grid">
+                                        <div class="example-item fact">
+                                            <strong>FACT:</strong> 'I rang the doorbell three times. The French guest answered.'
+                                        </div>
+                                        <div class="example-item interpretation">
+                                            <strong>INTERPRETATION:</strong> 'I annoyed the French guest.'
+                                        </div>
+                                        <div class="example-item fact">
+                                            <strong>FACT:</strong> 'I said "How was fucken Thailand?" to Ethan.'
+                                        </div>
+                                        <div class="example-item interpretation">
+                                            <strong>INTERPRETATION:</strong> 'I came across as socially incompetent.'
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Self-Judgment -->
+                        <div id="judgment-tab" class="tab-pane">
+                            <div class="step-header">
+                                <h3>Step 2: Acknowledge Your Internal Critic</h3>
+                                <p class="instructions">Write down your immediate, harsh conclusions about yourself. Get them out where you can see them clearly.</p>
+                            </div>
+                            
+                            <div class="analysis-input-section">
+                                <textarea id="judgment-text" class="analysis-textarea" placeholder="Write your self-judgments here..."></textarea>
+                                
+                                <div class="examples-section">
+                                    <h4>🎯 Purpose of This Step</h4>
+                                    <ul class="purpose-list">
+                                        <li>Acknowledge the emotional reaction without letting it control the analysis</li>
+                                        <li>Separate the feeling from the facts</li>
+                                        <li>Create space for objective analysis in the next steps</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 3: Deconstruct -->
+                        <div id="deconstruct-tab" class="tab-pane">
+                            <div class="step-header">
+                                <h3>Step 3: Deconstruct the Components</h3>
+                                <p class="instructions">Break down what happened into its core components. Analyze the gap between your intent and the outcome.</p>
+                            </div>
+                            
+                            <div class="analysis-input-section">
+                                <div class="deconstruct-grid">
+                                    <div class="deconstruct-item">
+                                        <div class="deconstruct-header">
+                                            <span class="deconstruct-icon">🎯</span>
+                                            <h4>Intent</h4>
+                                        </div>
+                                        <p class="deconstruct-description">What was your genuine goal or desire?</p>
+                                        <textarea id="intent-text" class="deconstruct-textarea" placeholder="Describe your intent..."></textarea>
+                                    </div>
+                                    
+                                    <div class="deconstruct-item">
+                                        <div class="deconstruct-header">
+                                            <span class="deconstruct-icon">⚡</span>
+                                            <h4>Action</h4>
+                                        </div>
+                                        <p class="deconstruct-description">What did you actually say or do?</p>
+                                        <textarea id="action-text" class="deconstruct-textarea" placeholder="Describe your actions..."></textarea>
+                                    </div>
+                                    
+                                    <div class="deconstruct-item">
+                                        <div class="deconstruct-header">
+                                            <span class="deconstruct-icon">📊</span>
+                                            <h4>Outcome</h4>
+                                        </div>
+                                        <p class="deconstruct-description">What was the actual result? How did others react?</p>
+                                        <textarea id="outcome-text" class="deconstruct-textarea" placeholder="Describe the outcome..."></textarea>
+                                    </div>
+                                    
+                                    <div class="deconstruct-item">
+                                        <div class="deconstruct-header">
+                                            <span class="deconstruct-icon">🔍</span>
+                                            <h4>The Gap</h4>
+                                        </div>
+                                        <p class="deconstruct-description">Why did your action not achieve your intent?</p>
+                                        <textarea id="gap-text" class="deconstruct-textarea" placeholder="Analyze the gap..."></textarea>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 4: Reframe -->
+                        <div id="reframe-tab" class="tab-pane">
+                            <div class="step-header">
+                                <h3>Step 4: Reframe Global Labels as Specific Skill Deficits</h3>
+                                <p class="instructions">Replace permanent, global labels with specific, improvable skills. This is the most crucial step.</p>
+                            </div>
+                            
+                            <div class="analysis-input-section">
+                                <div class="reframe-grid">
+                                    <div class="reframe-item">
+                                        <div class="reframe-header negative">
+                                            <span class="reframe-icon">❌</span>
+                                            <h4>Global Label</h4>
+                                        </div>
+                                        <p class="reframe-description">What your critic says</p>
+                                        <textarea id="global-label-text" class="reframe-textarea negative" placeholder="Write your negative self-labels..."></textarea>
+                                    </div>
+                                    
+                                    <div class="reframe-item">
+                                        <div class="reframe-header positive">
+                                            <span class="reframe-icon">✅</span>
+                                            <h4>Specific Skill Deficit</h4>
+                                        </div>
+                                        <p class="reframe-description">What actually needs work</p>
+                                        <textarea id="skill-deficit-text" class="reframe-textarea positive" placeholder="Reframe as specific skills to develop..."></textarea>
+                                    </div>
+                                </div>
+                                
+                                <div class="examples-section">
+                                    <h4>💡 Reframing Examples</h4>
+                                    <div class="reframe-examples">
+                                        <div class="reframe-example">
+                                            <span class="example-before">Instead of: 'I have no empathy'</span>
+                                            <span class="example-arrow">→</span>
+                                            <span class="example-after">Reframe to: 'I need to improve anticipating consequences'</span>
+                                        </div>
+                                        <div class="reframe-example">
+                                            <span class="example-before">Instead of: 'I'm socially incompetent'</span>
+                                            <span class="example-arrow">→</span>
+                                            <span class="example-after">Reframe to: 'I need to improve calibrating communication style'</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 5: Plan -->
+                        <div id="plan-tab" class="tab-pane">
+                            <div class="step-header">
+                                <h3>Step 5: Create Your Cold, Practical Plan</h3>
+                                <p class="instructions">Based on the skill deficit identified, what is one concrete action you will take next time? Not about feeling different - about doing something different.</p>
+                            </div>
+                            
+                            <div class="analysis-input-section">
+                                <textarea id="plan-text" class="analysis-textarea" placeholder="Write your practical plan here..."></textarea>
+                                
+                                <div class="examples-section">
+                                    <h4>💡 Practical Plan Examples</h4>
+                                    <div class="plan-examples">
+                                        <div class="plan-example">
+                                            <div class="plan-skill"><strong>Skill:</strong> Anticipating Consequences</div>
+                                            <div class="plan-action"><strong>Plan:</strong> 'In new situations, I will identify one potential failure point and secure a solution before acting.'</div>
+                                        </div>
+                                        <div class="plan-example">
+                                            <div class="plan-skill"><strong>Skill:</strong> Calibrating Communication</div>
+                                            <div class="plan-action"><strong>Plan:</strong> 'Before speaking, I will pause to observe the group's tone for 10 seconds and match their energy +1, not +10.'</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 6: Conclusion -->
+                        <div id="conclusion-tab" class="tab-pane">
+                            <div class="step-header">
+                                <h3>Step 6: State the Unforgiving Conclusion</h3>
+                                <p class="instructions">State the lesson without sugar-coating. This is not self-punishment - it's clarity about what needs to change.</p>
+                            </div>
+                            
+                            <div class="analysis-input-section">
+                                <textarea id="conclusion-text" class="analysis-textarea" placeholder="Write your unforgiving conclusion here..."></textarea>
+                                
+                                <div class="examples-section">
+                                    <h4>💡 Conclusion Examples</h4>
+                                    <div class="conclusion-examples">
+                                        <div class="conclusion-example">
+                                            'My desire for a run does not override my responsibility to secure entry. The solution is rigorous pre-planning.'
+                                        </div>
+                                        <div class="conclusion-example">
+                                            'My enthusiasm is not an excuse for poor delivery. The solution is conscious observation before speaking.'
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons -->
+                    <div class="action-buttons">
+                        <div class="action-group">
+                            <button id="clear-btn" class="btn-secondary">🗑️ Clear All</button>
+                            <button id="copy-btn" class="btn-secondary">📋 Copy Analysis</button>
+                        </div>
+                        <button id="save-btn" class="btn-primary">💾 Save Analysis</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Notification -->
+    <div id="notification" class="notification">
+        <span id="notification-text"></span>
+        <button id="notification-action" class="btn-small" style="display: none;">Undo</button>
+    </div>
+
+    <script src="analysis.js"></script>
+</body>
+</html>
