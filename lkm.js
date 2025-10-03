@@ -53,23 +53,37 @@ class LKMTimer {
         }
     }
 
-    runTimer() {
+    async runTimer() {
         if (this.intervalId) {
             clearInterval(this.intervalId);
+            this.intervalId = null;
         }
 
-        this.intervalId = setInterval(() => {
+        this.intervalId = setInterval(async () => {
             if (this.running && !this.paused) {
                 if (this.timeLeft > 0) {
                     this.timeLeft--;
                     this.updateCallback(this.currentSection, this.timeLeft);
                 } else {
-                    this.playTransitionSound();
+                    // Pause the timer while handling the transition
+                    this.paused = true;
+                    
+                    // Play the transition sound and wait for it to complete
+                    await this.playTransitionSound();
+                    
+                    // Move to the next section
                     this.currentSection++;
                     
                     if (this.currentSection < this.LKM_SECTIONS.length) {
                         this.timeLeft = this.LKM_SECTIONS[this.currentSection].duration;
                         this.updateCallback(this.currentSection, this.timeLeft);
+                        // Resume the timer after a brief pause
+                        setTimeout(() => {
+                            this.paused = false;
+                            if (!this.intervalId) {
+                                this.runTimer();
+                            }
+                        }, 500);
                     } else {
                         this.running = false;
                         if (this.intervalId) {
