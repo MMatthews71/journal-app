@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mindful Journal - Todo Tab</title>
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="goals.css">
 </head>
 <body>
     <div class="app-container">
@@ -33,6 +32,21 @@
 
         <!-- Main Content -->
         <main class="main-content">
+            <!-- Left Panel - Goals Hierarchy -->
+            <section class="goals-panel">
+                <div class="panel-header">
+                    <h2>Goal Hierarchy</h2>
+                </div>
+                
+                <div class="goals-container">
+                    <div id="goals-tree" class="goals-tree">
+                        <!-- Goals tree will be populated here by JavaScript -->
+                    </div>
+                    
+                    <button id="add-goal-btn" class="btn-primary">+ Add Goal</button>
+                </div>
+            </section>
+
             <!-- Right Panel - Tasks -->
             <section class="tasks-panel">
                 <div class="panel-header">
@@ -44,158 +58,115 @@
                     <div id="tasks-list" class="tasks-list">
                         <!-- Tasks will be populated here by JavaScript -->
                     </div>
-                </div>
-                
-                <!-- Compact Task Input Form -->
-                <div class="task-input-container compact">
-                    <div class="input-group">
-                        <input type="text" id="task-input" placeholder="Add new task..." class="task-input">
-                        <button id="add-task-btn" class="btn-primary">Add</button>
-                    </div>
                     
-                    <div class="task-options compact">
-                        <div class="option-row">
-                            <div class="option-group">
-                                <label>Priority:</label>
-                                <div class="priority-options">
-                                    <label class="radio-option">
-                                        <input type="radio" name="priority" value="one_thing">
-                                        <span class="radio-label one-thing-priority">⭐</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="priority" value="high">
-                                        <span class="radio-label high-priority">🔥</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="priority" value="medium" checked>
-                                        <span class="radio-label medium-priority">📅</span>
-                                    </label>
-                                    <label class="radio-option">
-                                        <input type="radio" name="priority" value="low">
-                                        <span class="radio-label low-priority">📌</span>
-                                    </label>
-                                </div>
-                            </div>
-                            
-                            <div class="option-group">
-                                <label for="goal-select">Goal:</label>
-                                <select id="goal-select" class="goal-select">
-                                    <option value="">None</option>
-                                </select>
-                            </div>
+                    <!-- Task Input Form -->
+                    <div class="task-input-container">
+                        <div class="input-group">
+                            <input type="text" id="task-input" placeholder="Add new task..." class="task-input">
+                            <button id="add-task-btn" class="btn-primary">Add</button>
                         </div>
                         
-                        <div class="option-row">
-                            <div class="option-group">
-                                <label class="checkbox-option">
-                                    <input type="checkbox" id="daily-task">
-                                    <span class="checkmark"></span>
-                                    Daily
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Left Panel - Goal Graph -->
-            <section class="goals-panel">
-                <div class="panel-header">
-                    <h2>Goal Graph</h2>
-                </div>
-                
-                <div class="goals-container" style="padding: 0; height: 100%;">
-                    <!-- Goal Graph Integration -->
-                    <div class="container" style="height: 100%; flex-direction: column;">
-                        <button class="toggle-sidebar" id="toggleSidebar">☰ Menu</button>
-                        
-                        <div class="sidebar" id="sidebar">
-                            <h1>Goal Graph</h1>
-                            
-                            <div class="search-box">
-                                <input type="text" id="searchInput" placeholder="Search goals...">
-                            </div>
-                            
-                            <div class="controls">
-                                <button id="centerBtn">Center View</button>
-                                <button id="resetZoomBtn">Reset Zoom</button>
-                            </div>
-                            
-                            <h2>Create New Goal</h2>
-                            <div class="form-group">
-                                <label for="nodeId">Goal Name:</label>
-                                <input type="text" id="nodeId" placeholder="e.g., Learn JavaScript">
-                            </div>
-                            <div class="form-group">
-                                <label for="nodeDescription">Description:</label>
-                                <textarea id="nodeDescription" placeholder="What do you want to achieve?" rows="3"></textarea>
-                            </div>
-                            <div class="form-group">
-                                <label for="nodeCategory">Category:</label>
-                                <select id="nodeCategory">
-                                    <option value="personal">Personal</option>
-                                    <option value="work">Career</option>
-                                    <option value="learning">Learning</option>
-                                    <option value="health">Health</option>
-                                    <option value="financial">Financial</option>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="parentNode">Parent Goal (optional):</label>
-                                <input type="text" id="parentNode" placeholder="Connect to existing goal">
-                            </div>
-                            <button id="addNodeBtn">Add Goal</button>
-                            <button id="exampleBtn" class="secondary">Load Example Goals</button>
-                            
-                            <div class="node-info" id="nodeInfo" style="display: none;">
-                                <h3 id="selectedNodeTitle">Selected Goal</h3>
-                                <p><strong>Name:</strong> <span id="infoNodeId"></span></p>
-                                <p><strong>Description:</strong> <span id="infoDescription"></span></p>
-                                <p><strong>Category:</strong> <span id="infoCategory"></span></p>
-                                <p><strong>Connections:</strong> <span id="infoConnections"></span></p>
-                                <div style="margin-top: 20px;">
-                                    <button id="editNodeBtn" class="secondary">Edit Goal</button>
-                                    <button id="deleteNodeBtn" class="danger">Delete Goal</button>
+                        <div class="task-options">
+                            <div class="option-row">
+                                <div class="option-group">
+                                    <label>Priority:</label>
+                                    <div class="priority-options">
+                                        <label class="radio-option">
+                                            <input type="radio" name="priority" value="one_thing">
+                                            <span class="radio-label one-thing-priority">⭐</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="priority" value="high">
+                                            <span class="radio-label high-priority">🔥</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="priority" value="medium" checked>
+                                            <span class="radio-label medium-priority">📅</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="priority" value="low">
+                                            <span class="radio-label low-priority">📌</span>
+                                        </label>
+                                    </div>
                                 </div>
-                            </div>
-                        </div>
-                        
-                        <div class="graph-container">
-                            <div class="toolbar">
-                                <button id="togglePhysicsBtn">Pause Physics</button>
-                                <button id="exportBtn">Export Goals</button>
-                            </div>
-                            
-                            <div class="legend">
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #f59e0b;"></div>
-                                    <span>Learning</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #10b981;"></div>
-                                    <span>Career</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #6366f1;"></div>
-                                    <span>Personal</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #ef4444;"></div>
-                                    <span>Health</span>
-                                </div>
-                                <div class="legend-item">
-                                    <div class="legend-color" style="background-color: #8b5cf6;"></div>
-                                    <span>Financial</span>
+                                
+                                <div class="option-group">
+                                    <label for="goal-select">Goal:</label>
+                                    <select id="goal-select" class="goal-select">
+                                        <option value="">None</option>
+                                    </select>
                                 </div>
                             </div>
                             
-                            <svg id="graph" width="100%" height="100%"></svg>
-                            <div id="contextMenu" class="context-menu"></div>
+                            <div class="option-row">
+                                <div class="option-group">
+                                    <label class="checkbox-option">
+                                        <input type="checkbox" id="daily-task">
+                                        <span class="checkmark"></span>
+                                        Daily
+                                    </label>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
         </main>
+    </div>
+
+    <!-- Add Goal Modal -->
+    <div id="goal-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Add New Goal</h3>
+                <span class="close-modal">&times;</span>
+            </div>
+            
+            <div class="modal-body">
+                <div class="form-group">
+                    <label for="goal-description">Goal Description:</label>
+                    <input type="text" id="goal-description" class="form-input" placeholder="Enter your goal...">
+                </div>
+                
+                <div class="form-group">
+                    <label>Goal Level:</label>
+                    <div class="goal-level-options">
+                        <label class="radio-option">
+                            <input type="radio" name="goal-level" value="someday">
+                            <span class="radio-label someday-level">🌟 Someday</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal-level" value="5year">
+                            <span class="radio-label five-year-level">📅 5-Year</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal-level" value="1year">
+                            <span class="radio-label one-year-level">🎯 1-Year</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal-level" value="monthly" checked>
+                            <span class="radio-label monthly-level">📋 Monthly</span>
+                        </label>
+                        <label class="radio-option">
+                            <input type="radio" name="goal-level" value="weekly">
+                            <span class="radio-label weekly-level">📆 Weekly</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <div class="form-group" id="parent-goal-group">
+                    <label for="parent-goal">Parent Goal:</label>
+                    <select id="parent-goal" class="form-input">
+                        <option value="">No parent goal</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="modal-footer">
+                <button id="cancel-goal-btn" class="btn-secondary">Cancel</button>
+                <button id="save-goal-btn" class="btn-primary">Add Goal</button>
+            </div>
+        </div>
     </div>
 
     <!-- Notification -->
@@ -204,8 +175,6 @@
         <button id="notification-action" class="btn-small" style="display: none;">Undo</button>
     </div>
 
-    <script src="https://d3js.org/d3.v7.min.js"></script>
     <script src="script.js"></script>
-    <script src="goals_script.js"></script>
 </body>
 </html>
