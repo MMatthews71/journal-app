@@ -142,13 +142,18 @@ class LKMApp {
         document.getElementById('save-reflection').addEventListener('click', () => {
             this.saveReflection();
         });
-
+        
         document.getElementById('clear-reflection').addEventListener('click', () => {
             this.clearReflection();
         });
 
         // Keyboard shortcuts
         document.addEventListener('keydown', (e) => {
+            // Don't interfere with typing in the reflection textarea or any input field
+            if (e.target.matches('textarea, input, [contenteditable]')) {
+                return;
+            }
+
             if (e.key === ' ' || e.key === 'Spacebar') {
                 e.preventDefault();
                 if (this.timer && this.timer.running) {
@@ -162,12 +167,6 @@ class LKMApp {
                 this.stopTimer();
             }
         });
-    }
-
-    startTimer() {
-        const startBtn = document.getElementById('start-btn');
-        const pauseBtn = document.getElementById('pause-btn');
-        const stopBtn = document.getElementById('stop-btn');
 
         startBtn.disabled = true;
         pauseBtn.disabled = false;

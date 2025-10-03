@@ -43,7 +43,6 @@ class TodoApp {
         this.activeTodos = [];
         this.completedTodos = [];
         this.lastResetDate = new Date().toISOString().split('T')[0];
-        this.deletedItem = null;
         this.dataFolderInfo = '';
         
         this.init();
@@ -56,30 +55,38 @@ class TodoApp {
         this.renderTodos();
         this.updateGoalSelect();
         this.checkDailyReset();
+        await this.checkAndHideCompletedGoals();
     }
     
     async loadData() {
         try {
+            // Load active goals and tasks
             const [goalsResult, tasksResult] = await Promise.all([
                 this.loadDataFromFile('goals', 'active'),
                 this.loadDataFromFile('tasks', 'active')
             ]);
             
-            if (goalsResult.success) this.activeGoals = goalsResult.data;
-            if (tasksResult.success) this.activeTodos = tasksResult.data;
+            if (goalsResult && goalsResult.success) this.activeGoals = goalsResult.data || [];
+            if (tasksResult && tasksResult.success) this.activeTodos = tasksResult.data || [];
             
+            // Load completed goals and tasks
             const [completedGoalsResult, completedTasksResult] = await Promise.all([
                 this.loadDataFromFile('goals', 'completed'),
                 this.loadDataFromFile('tasks', 'completed')
             ]);
             
-            if (completedGoalsResult.success) this.completedGoals = completedGoalsResult.data;
-            if (completedTasksResult.success) this.completedTodos = completedTasksResult.data;
+            if (completedGoalsResult && completedGoalsResult.success) this.completedGoals = completedGoalsResult.data || [];
+            if (completedTasksResult && completedTasksResult.success) this.completedTodos = completedTasksResult.data || [];
             
             console.log('Data loaded successfully from files');
         } catch (error) {
             console.error('Error loading data:', error);
             this.showNotification('Error loading data from files', 'error');
+            // Initialize empty arrays if loading fails
+            this.activeGoals = [];
+            this.activeTodos = [];
+            this.completedGoals = [];
+            this.completedTodos = [];
         }
     }
     
@@ -870,6 +877,58 @@ class TodoApp {
                 this.showNotification(`${resetCount} daily task(s) reset for today`, 'info');
             }
         }
+    }
+    
+    // Check and hide completed goals at 11:59 PM
+    checkAndHideCompletedGoals() {
+        const now = new Date();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        
+        // If it's 11:59 PM or later, hide completed goals
+        if ((currentHour === 23 && currentMinute >= 59) || (currentHour >= 0 && currentHour < 6)) {
+            this.hideCompletedGoals();
+            return;
+        }
+        
+        // Calculate milliseconds until 11:59 PM
+        const targetTime = new Date();
+        targetTime.setHours(23, 59, 0, 0);
+        
+        // If it's already past 11:59 PM, set for tomorrow
+        if (now >= targetTime) {
+            targetTime.setDate(targetTime.getDate() + 1);
+        }
+        
+        const msUntil1159PM = targetTime - now;
+        
+        // Set a timeout to hide completed goals at 11:59 PM
+        setTimeout(() => this.hideCompletedGoals(), msUntil1159PM);
+    }
+    
+    // Hide completed goals and save changes
+    hideCompletedGoals() {
+        // Only proceed if there are completed goals to hide
+        if (this.completedGoals.length === 0) {
+            this.checkAndHideCompletedGoals(); // Check again in case of race conditions
+            return;
+        }
+        
+        // Clear completed goals
+        this.completedGoals = [];
+        
+        // Save the updated lists
+        ipcRenderer.invoke('save-data', 'goals', this.activeGoals, 'active');
+        ipcRenderer.invoke('save-data', 'goals', this.completedGoals, 'completed');
+        
+        // Re-render the goals list
+        this.renderGoals();
+        
+        // Show notification
+        this.showNotification('Completed goals have been cleared for the day', 'info');
+        
+        // Set a timeout to check again in 1 minute (in case the app is running at 23:59)
+        setTimeout(() => this.checkAndHideCompletedGoals(), 60000);
     }
     
     showNotification(message, type = 'info', duration = 3000, actionText = null) {
