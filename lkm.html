@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mindful Journal - Identity Transformation Meditation</title>
+    <title>Mindful Journal - Transformation Meditations</title>
     <link rel="stylesheet" href="lkm.css">
 </head>
 <body>
@@ -30,18 +30,30 @@
         <main class="main-content">
             <!-- Header Section -->
             <section class="lkm-header">
-                <h1>🌱 Identity Transformation Meditation</h1>
-                <p class="subtitle">Become the person you choose to be</p>
+                <h1>🌙 Transformation Meditations</h1>
+                <p class="subtitle">Choose your meditation practice</p>
+                
+                <!-- Meditation Type Selector -->
+                <div class="meditation-selector">
+                    <div class="selector-tabs">
+                        <button class="meditation-tab active" data-type="morning">
+                            🌅 Morning - Identity Transformation
+                        </button>
+                        <button class="meditation-tab" data-type="evening">
+                            🌙 Evening - Reflection & Integration
+                        </button>
+                    </div>
+                </div>
             </section>
 
             <!-- Timer Section -->
             <section class="timer-section">
                 <div class="timer-card">
-                    <h2>⏱️ Meditation Timer</h2>
+                    <h2 id="timer-title">⏱️ Meditation Timer</h2>
                     
                     <div class="timer-display">
                         <div class="time-display" id="time-display">Ready to begin</div>
-                        <div class="section-info" id="section-info">Click Start to begin your transformation</div>
+                        <div class="section-info" id="section-info">Select a meditation and click Start</div>
                     </div>
 
                     <div class="timer-controls">
@@ -55,7 +67,7 @@
             <!-- Instructions Section -->
             <section class="instructions-section">
                 <div class="instructions-card">
-                    <h2>📖 Meditation Guide</h2>
+                    <h2 id="instructions-title">📖 Meditation Guide</h2>
                     <div class="instructions-content" id="instructions-content">
                         <!-- Instructions will be populated by JavaScript -->
                     </div>
@@ -66,9 +78,9 @@
             <section class="reflection-section" id="reflection-section" style="display: none;">
                 <div class="reflection-card">
                     <h2>📝 Post-Meditation Reflection</h2>
-                    <p class="reflection-subtitle">Take a moment to reflect on your transformation experience:</p>
+                    <p class="reflection-subtitle" id="reflection-subtitle">Take a moment to reflect on your meditation experience:</p>
                     
-                    <textarea id="reflection-text" placeholder="How did the meditation feel? What insights emerged? How did your new self feel?"></textarea>
+                    <textarea id="reflection-text" placeholder="How did the meditation feel? What insights emerged?"></textarea>
                     
                     <div class="reflection-controls">
                         <button id="clear-reflection" class="btn-secondary">🗑️ Clear</button>

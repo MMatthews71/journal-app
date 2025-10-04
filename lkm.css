@@ -15,11 +15,16 @@
     --warning-color: #d69e2e;
     --danger-color: #e53e3e;
     
-    /* LKM-specific colors */
+    /* Meditation-specific colors */
     --lkm-accent: #2c5530;
     --lkm-light: #c0d8c0;
     --lkm-bg: #f0fff4;
     --lkm-card-bg: #ffffff;
+    
+    /* Evening meditation colors */
+    --evening-accent: #4c51bf;
+    --evening-light: #c3dafe;
+    --evening-bg: #ebf4ff;
     
     /* Spacing */
     --spacing-xl: 24px;
@@ -128,6 +133,51 @@ body {
     font-size: 1.2rem;
     color: var(--text-light);
     font-weight: 400;
+    margin-bottom: var(--spacing-l);
+}
+
+/* Meditation Selector */
+.meditation-selector {
+    margin-top: var(--spacing-l);
+}
+
+.selector-tabs {
+    display: flex;
+    background: var(--lkm-bg);
+    border-radius: var(--border-radius);
+    padding: var(--spacing-s);
+    gap: var(--spacing-s);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.meditation-tab {
+    flex: 1;
+    padding: var(--spacing-m) var(--spacing-l);
+    border: none;
+    border-radius: var(--border-radius);
+    background: transparent;
+    color: var(--text-light);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.meditation-tab:hover {
+    background: rgba(255, 255, 255, 0.5);
+    color: var(--text-color);
+}
+
+.meditation-tab.active {
+    background: white;
+    color: var(--lkm-accent);
+    box-shadow: var(--shadow-sm);
+    font-weight: 600;
+}
+
+.meditation-tab.active[data-type="evening"] {
+    color: var(--evening-accent);
 }
 
 /* Timer Section */
@@ -390,6 +440,10 @@ body {
     
     .subtitle {
         font-size: 1rem;
+    }
+    
+    .selector-tabs {
+        flex-direction: column;
     }
     
     .timer-controls {
