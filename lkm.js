@@ -299,12 +299,23 @@ class MeditationApp {
     constructor() {
         this.currentMeditationType = 'morning'; // Default to morning
         this.timer = null;
+        this.identityTraits = this.loadIdentityTraits();
         this.init();
     }
 
     init() {
         this.setupEventListeners();
+        this.setupIdentityControls();
+        this.renderIdentityTraits();
         this.loadInstructions();
+        
+        // Show identity section only for morning meditation by default
+        const identitySection = document.getElementById('identity-section');
+        if (this.currentMeditationType === 'morning') {
+            identitySection.style.display = 'flex';
+        } else {
+            identitySection.style.display = 'none';
+        }
     }
 
     setupEventListeners() {
@@ -359,6 +370,185 @@ class MeditationApp {
         });
     }
 
+    setupIdentityControls() {
+        document.getElementById('customize-traits').addEventListener('click', () => {
+            this.showCustomizationModal();
+        });
+        
+        document.getElementById('save-identity').addEventListener('click', () => {
+            this.saveIdentityTraits();
+        });
+    }
+
+    loadIdentityTraits() {
+        const savedTraits = localStorage.getItem('identity_traits');
+        if (savedTraits) {
+            return JSON.parse(savedTraits);
+        }
+        
+        // Default transformation based on your journal analysis
+        return {
+            oldSelf: ["Using others for approval through games and myth-making",
+
+                "Inability to translate insight into consistent daily action",
+                
+                "winging between suppressed emotions and explosive aggression",
+                
+                "Mental absence due to rumination and fantasy",
+                
+                "Seeing people as tools for validation rather than connection"
+            ],
+            newSelf: [
+                "Deriving confidence from self-acceptance, not external approval",
+
+                "Reliably implementing plans and habits with discipline",
+
+                "Navigating feelings with awareness and balanced expression",
+
+                "Full attention and connection in the current moment",
+
+                "Building relationships based on mutual understanding and care"
+            ]
+        };
+    }
+
+    saveIdentityTraits() {
+        localStorage.setItem('identity_traits', JSON.stringify(this.identityTraits));
+        this.showNotification('Identity traits saved successfully!', 'success');
+    }
+
+    renderIdentityTraits() {
+        const oldSelfList = document.getElementById('old-self-list');
+        const newSelfList = document.getElementById('new-self-list');
+        
+        oldSelfList.innerHTML = '';
+        newSelfList.innerHTML = '';
+        
+        this.identityTraits.oldSelf.forEach(trait => {
+            const li = document.createElement('li');
+            li.className = 'trait-item';
+            li.textContent = trait;
+            oldSelfList.appendChild(li);
+        });
+        
+        this.identityTraits.newSelf.forEach(trait => {
+            const li = document.createElement('li');
+            li.className = 'trait-item';
+            li.textContent = trait;
+            newSelfList.appendChild(li);
+        });
+    }
+
+    showCustomizationModal() {
+        // Create modal HTML
+        const modalHTML = `
+            <div class="modal-overlay" id="customization-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>✏️ Customize Your Identity Transformation</h3>
+                        <button class="close-modal">&times;</button>
+                    </div>
+                    <div class="trait-customization" id="trait-customization">
+                        ${this.identityTraits.oldSelf.map((oldTrait, index) => `
+                            <div class="trait-pair" data-index="${index}">
+                                <input type="text" class="trait-input old-trait" value="${oldTrait}" placeholder="Old self trait">
+                                <input type="text" class="trait-input new-trait" value="${this.identityTraits.newSelf[index]}" placeholder="New self trait">
+                                <button class="btn-small remove-trait" data-index="${index}">🗑️</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="modal-controls">
+                        <button id="add-trait-pair" class="btn-secondary">➕ Add Trait Pair</button>
+                        <button id="save-customization" class="btn-primary">💾 Save Changes</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Add modal to document
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        const modal = document.getElementById('customization-modal');
+        modal.style.display = 'flex';
+        
+        // Setup modal event listeners
+        this.setupModalEvents();
+    }
+
+    setupModalEvents() {
+        const modal = document.getElementById('customization-modal');
+        const closeBtn = modal.querySelector('.close-modal');
+        const addBtn = modal.querySelector('#add-trait-pair');
+        const saveBtn = modal.querySelector('#save-customization');
+        const customizationArea = modal.querySelector('#trait-customization');
+        
+        closeBtn.addEventListener('click', () => {
+            modal.remove();
+        });
+        
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.remove();
+            }
+        });
+        
+        addBtn.addEventListener('click', () => {
+            const newIndex = this.identityTraits.oldSelf.length;
+            const newPair = document.createElement('div');
+            newPair.className = 'trait-pair';
+            newPair.setAttribute('data-index', newIndex);
+            newPair.innerHTML = `
+                <input type="text" class="trait-input old-trait" placeholder="Old self trait">
+                <input type="text" class="trait-input new-trait" placeholder="New self trait">
+                <button class="btn-small remove-trait" data-index="${newIndex}">🗑️</button>
+            `;
+            customizationArea.appendChild(newPair);
+            
+            // Add event listener to new remove button
+            newPair.querySelector('.remove-trait').addEventListener('click', (e) => {
+                e.target.closest('.trait-pair').remove();
+            });
+        });
+        
+        // Add event listeners to existing remove buttons
+        modal.querySelectorAll('.remove-trait').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.target.closest('.trait-pair').remove();
+            });
+        });
+        
+        saveBtn.addEventListener('click', () => {
+            this.saveCustomizedTraits();
+            modal.remove();
+        });
+    }
+
+    saveCustomizedTraits() {
+        const modal = document.getElementById('customization-modal');
+        const traitPairs = modal.querySelectorAll('.trait-pair');
+        
+        const newOldSelf = [];
+        const newNewSelf = [];
+        
+        traitPairs.forEach(pair => {
+            const oldTrait = pair.querySelector('.old-trait').value.trim();
+            const newTrait = pair.querySelector('.new-trait').value.trim();
+            
+            if (oldTrait && newTrait) {
+                newOldSelf.push(oldTrait);
+                newNewSelf.push(newTrait);
+            }
+        });
+        
+        if (newOldSelf.length > 0) {
+            this.identityTraits.oldSelf = newOldSelf;
+            this.identityTraits.newSelf = newNewSelf;
+            this.saveIdentityTraits();
+            this.renderIdentityTraits();
+        } else {
+            this.showNotification('Please add at least one trait pair', 'warning');
+        }
+    }
+
     switchMeditationType(type) {
         if (this.currentMeditationType === type) return;
         
@@ -375,6 +565,14 @@ class MeditationApp {
         
         this.currentMeditationType = type;
         this.timer = null;
+        
+        // Show/hide identity section based on meditation type
+        const identitySection = document.getElementById('identity-section');
+        if (type === 'morning') {
+            identitySection.style.display = 'flex';
+        } else {
+            identitySection.style.display = 'none';
+        }
         
         // Update instructions and UI text
         this.loadInstructions();

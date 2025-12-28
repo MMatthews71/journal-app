@@ -180,6 +180,111 @@ body {
     color: var(--evening-accent);
 }
 
+/* Identity Transformation Section */
+.identity-section {
+    display: flex;
+    justify-content: center;
+}
+
+.identity-card {
+    background: var(--lkm-card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 1000px;
+}
+
+.identity-card h2 {
+    color: var(--lkm-accent);
+    margin-bottom: var(--spacing-l);
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+}
+
+.identity-content {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-xl);
+    margin-bottom: var(--spacing-l);
+}
+
+.old-self, .new-self {
+    flex: 1;
+    padding: var(--spacing-l);
+    border-radius: var(--border-radius);
+}
+
+.old-self {
+    background: linear-gradient(135deg, #fed7d7 0%, #feb2b2 100%);
+    border: 2px solid #fc8181;
+}
+
+.new-self {
+    background: linear-gradient(135deg, #c6f6d5 0%, #9ae6b4 100%);
+    border: 2px solid #48bb78;
+}
+
+.old-self h3, .new-self h3 {
+    text-align: center;
+    margin-bottom: var(--spacing-m);
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.old-self h3 {
+    color: #c53030;
+}
+
+.new-self h3 {
+    color: #276749;
+}
+
+.transformation-arrow {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--spacing-l);
+    font-size: 2rem;
+    color: var(--lkm-accent);
+}
+
+.trait-list {
+    list-style: none;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.trait-item {
+    padding: var(--spacing-s) var(--spacing-m);
+    margin-bottom: var(--spacing-s);
+    border-radius: var(--border-radius);
+    font-size: 0.95rem;
+    line-height: 1.4;
+    transition: all 0.3s ease;
+}
+
+.old-self .trait-item {
+    background: rgba(254, 215, 215, 0.7);
+    border-left: 4px solid #fc8181;
+    color: #742a2a;
+}
+
+.new-self .trait-item {
+    background: rgba(198, 246, 213, 0.7);
+    border-left: 4px solid #48bb78;
+    color: #22543d;
+}
+
+.identity-controls {
+    display: flex;
+    gap: var(--spacing-m);
+    justify-content: center;
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--spacing-l);
+}
+
 /* Timer Section */
 .timer-section {
     display: flex;
@@ -396,6 +501,90 @@ body {
     min-width: auto;
 }
 
+/* Customization Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: var(--card-bg);
+    border-radius: var(--border-radius-lg);
+    padding: var(--spacing-xl);
+    max-width: 600px;
+    width: 90%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: var(--spacing-l);
+}
+
+.modal-header h3 {
+    color: var(--lkm-accent);
+    font-size: 1.3rem;
+}
+
+.close-modal {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-light);
+}
+
+.close-modal:hover {
+    color: var(--text-color);
+}
+
+.trait-customization {
+    margin-bottom: var(--spacing-l);
+}
+
+.trait-pair {
+    display: flex;
+    gap: var(--spacing-m);
+    margin-bottom: var(--spacing-m);
+    padding: var(--spacing-m);
+    background: var(--hover-bg);
+    border-radius: var(--border-radius);
+}
+
+.trait-input {
+    flex: 1;
+    padding: var(--spacing-s);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    font-family: inherit;
+}
+
+.trait-input.old-trait {
+    border-left: 4px solid #fc8181;
+}
+
+.trait-input.new-trait {
+    border-left: 4px solid #48bb78;
+}
+
+.modal-controls {
+    display: flex;
+    gap: var(--spacing-m);
+    justify-content: flex-end;
+}
+
 /* Notification */
 .notification {
     position: fixed;
@@ -443,6 +632,20 @@ body {
     }
     
     .selector-tabs {
+        flex-direction: column;
+    }
+    
+    .identity-content {
+        flex-direction: column;
+        gap: var(--spacing-m);
+    }
+    
+    .transformation-arrow {
+        transform: rotate(90deg);
+        padding: var(--spacing-m);
+    }
+    
+    .identity-controls {
         flex-direction: column;
     }
     

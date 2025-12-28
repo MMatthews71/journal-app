@@ -9,6 +9,8 @@ class JournalEntry {
         this.updated = new Date().toISOString();
         this.wordCount = this.calculateWordCount(content);
         this.charCount = content.length;
+        // Generate formatted content with timestamp at top
+        this.formattedContent = this.formatContentWithTimestamp(content);
     }
     
     generateId() {
@@ -19,14 +21,31 @@ class JournalEntry {
         return text.trim() ? text.trim().split(/\s+/).length : 0;
     }
     
+    formatContentWithTimestamp(content) {
+        const date = new Date(this.created);
+        const formattedDate = date.toLocaleDateString('en-US', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        
+        return `--- ${formattedDate} ---\n\n${content}`;
+    }
+    
     updateContent(newContent) {
         this.content = newContent;
         this.updated = new Date().toISOString();
         this.wordCount = this.calculateWordCount(newContent);
         this.charCount = newContent.length;
+        // Update formatted content but keep the same timestamp
+        this.formattedContent = this.formatContentWithTimestamp(newContent);
     }
     
     getPreview(maxLength = 100) {
+        // Get preview without timestamp
         const plainText = this.content.replace(/[#*`]/g, '').trim();
         return plainText.length > maxLength ? 
             plainText.substring(0, maxLength) + '...' : plainText;
@@ -36,9 +55,15 @@ class JournalEntry {
         const date = new Date(this.created);
         return {
             date: date.toLocaleDateString(),
-            time: date.toLocaleTimeString(),
+            time: date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
             full: date.toLocaleString(),
-            relative: this.getRelativeTime(date)
+            relative: this.getRelativeTime(date),
+            detailed: date.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            })
         };
     }
     
@@ -54,6 +79,16 @@ class JournalEntry {
         if (diffHours < 24) return `${diffHours}h ago`;
         if (diffDays < 7) return `${diffDays}d ago`;
         return date.toLocaleDateString();
+    }
+    
+    // Get content for saving to file (with timestamp)
+    getContentForFile() {
+        return this.formattedContent;
+    }
+    
+    // Get content without timestamp (for analysis/search)
+    getContentWithoutTimestamp() {
+        return this.content;
     }
 }
 
@@ -96,9 +131,33 @@ class JournalApp {
                         ? new Date(data.updated).toISOString() 
                         : (data.updated || data.created);
                     
-                    const entry = new JournalEntry(data.content, data.type, created);
+                    // Check if content already has timestamp
+                    let contentWithoutTimestamp = data.content;
+                    let parsedCreated = created;
+                    
+                    // Try to extract timestamp from content if it exists
+                    const timestampMatch = data.content.match(/^--- (.*) ---\s*\n*/);
+                    if (timestampMatch) {
+                        try {
+                            // Parse the date from the timestamp string
+                            const timestampStr = timestampMatch[1];
+                            // Remove timestamp line from content
+                            contentWithoutTimestamp = data.content.replace(/^---.*---\s*\n*/, '').trim();
+                            // Try to parse the date from the timestamp string
+                            const parsedDate = new Date(timestampStr);
+                            if (!isNaN(parsedDate.getTime())) {
+                                parsedCreated = parsedDate.toISOString();
+                            }
+                        } catch (e) {
+                            console.log('Could not parse timestamp from content, using stored created date');
+                        }
+                    }
+                    
+                    const entry = new JournalEntry(contentWithoutTimestamp, data.type, parsedCreated);
                     entry.id = data.id;
                     entry.updated = updated;
+                    // Recreate formatted content with original timestamp
+                    entry.formattedContent = entry.formatContentWithTimestamp(contentWithoutTimestamp);
                     return entry;
                 });
                 
@@ -116,7 +175,7 @@ class JournalApp {
     async saveEntryToFile(entry) {
         const entryData = {
             id: entry.id,
-            content: entry.content,
+            content: entry.getContentForFile(), // Save with timestamp
             type: entry.type,
             created: new Date(entry.created).getTime(),
             updated: new Date(entry.updated).getTime()
@@ -160,6 +219,7 @@ class JournalApp {
         
         document.getElementById('journal-editor').addEventListener('input', (e) => {
             this.updateEditorStats();
+            this.updateEditorStatus();
         });
         
         document.querySelector('.close-modal').addEventListener('click', () => {
@@ -190,10 +250,23 @@ class JournalApp {
                 e.preventDefault();
                 this.newEntry();
             }
+            
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k' && e.shiftKey) {
+                e.preventDefault();
+                document.getElementById('entry-search').focus();
+            }
         });
         
         document.getElementById('notification-action').addEventListener('click', () => {
             this.handleNotificationAction();
+        });
+        
+        // Add focus to editor when clicking on empty space
+        document.addEventListener('click', (e) => {
+            if (e.target === document.body || e.target.classList.contains('editor-container')) {
+                const editor = document.getElementById('journal-editor');
+                if (editor) editor.focus();
+            }
         });
     }
     
@@ -202,32 +275,40 @@ class JournalApp {
         this.clearEditor();
         this.updateEditorStatus();
         document.getElementById('journal-editor').focus();
+        this.showNotification('Creating new entry...', 'info', 2000);
     }
     
     async saveEntry() {
         const content = document.getElementById('journal-editor').value.trim();
-        const entryType = 'personal'; // Default type since we removed the type selector
+        const entryType = 'personal';
         
-        if (!content) {
+        // Remove existing timestamp line if present (in case user copied it)
+        const cleanContent = content.replace(/^---.*---\s*\n*/gm, '').trim();
+        
+        if (!cleanContent) {
             this.showNotification('Please write something before saving.', 'warning');
             return;
         }
         
         if (this.currentEntry) {
-            this.currentEntry.updateContent(content);
+            this.currentEntry.updateContent(cleanContent);
             const success = await this.saveEntryToFile(this.currentEntry);
             if (success) {
+                // Update editor with formatted content (with timestamp)
+                document.getElementById('journal-editor').value = this.currentEntry.formattedContent;
                 this.showNotification('Entry updated successfully!', 'success');
             } else {
                 this.showNotification('Error updating entry', 'error');
             }
         } else {
-            const newEntry = new JournalEntry(content, entryType);
+            const newEntry = new JournalEntry(cleanContent, entryType);
             this.entries.unshift(newEntry);
             this.currentEntry = newEntry;
             
             const success = await this.saveEntryToFile(newEntry);
             if (success) {
+                // Update editor with formatted content (with timestamp)
+                document.getElementById('journal-editor').value = newEntry.formattedContent;
                 this.showNotification('New entry saved successfully!', 'success');
             } else {
                 this.showNotification('Error saving entry', 'error');
@@ -238,13 +319,15 @@ class JournalApp {
         
         this.renderEntries();
         this.updateStats();
+        this.updateEditorStatus();
     }
     
     loadEntry(entryId) {
         const entry = this.entries.find(e => e.id === entryId);
         if (entry) {
             this.currentEntry = entry;
-            document.getElementById('journal-editor').value = entry.content;
+            // Display the formatted content with timestamp
+            document.getElementById('journal-editor').value = entry.formattedContent;
             this.updateEditorStats();
             this.updateEditorStatus();
             document.getElementById('journal-editor').focus();
@@ -265,7 +348,7 @@ class JournalApp {
         const preview = document.getElementById('entry-to-delete');
         
         const dateInfo = entry.getFormattedDate();
-        preview.textContent = `"${entry.getPreview(50)}" - ${dateInfo.full}`;
+        preview.textContent = `"${entry.getPreview(50)}" - ${dateInfo.detailed}`;
         
         modal.style.display = 'flex';
     }
@@ -299,7 +382,6 @@ class JournalApp {
             return;
         }
         
-        // Redirect to analysis tab with current entry
         window.location.href = `analysis.html?entryId=${this.currentEntry.id}`;
     }
     
@@ -402,7 +484,7 @@ Average Sentence Length: ${analysis.avgSentenceLength.toFixed(1)} words
                 <div class="entry-title">${this.getTypeName(entry.type)}</div>
                 <span class="entry-type type-${entry.type}">${entry.type}</span>
             </div>
-            <div class="entry-date">${dateInfo.relative}</div>
+            <div class="entry-date">${dateInfo.detailed}</div>
             <div class="entry-preview">${preview}</div>
         `;
         
@@ -414,7 +496,6 @@ Average Sentence Length: ${analysis.avgSentenceLength.toFixed(1)} words
             entryDiv.classList.add('selected');
         });
         
-        // Add right-click context menu for delete
         entryDiv.addEventListener('contextmenu', (e) => {
             e.preventDefault();
             this.currentEntry = entry;
@@ -442,8 +523,9 @@ Average Sentence Length: ${analysis.avgSentenceLength.toFixed(1)} words
     
     updateEditorStats() {
         const content = document.getElementById('journal-editor').value;
-        const wordCount = content.trim() ? content.trim().split(/\s+/).length : 0;
-        const charCount = content.length;
+        const cleanContent = content.replace(/^---.*---\s*\n*/gm, '').trim();
+        const wordCount = cleanContent ? cleanContent.split(/\s+/).length : 0;
+        const charCount = cleanContent.length;
         const readingTime = Math.ceil(wordCount / 200);
         
         document.getElementById('editor-word-count').textContent = wordCount;
@@ -457,8 +539,16 @@ Average Sentence Length: ${analysis.avgSentenceLength.toFixed(1)} words
         if (this.currentEntry) {
             const dateInfo = this.currentEntry.getFormattedDate();
             statusElement.textContent = `Editing ${this.getTypeName(this.currentEntry.type)} from ${dateInfo.relative}`;
+            statusElement.className = 'status-editing';
         } else {
-            statusElement.textContent = `Creating new entry`;
+            const wordCount = document.getElementById('editor-word-count').textContent;
+            if (wordCount > 0) {
+                statusElement.textContent = `New entry (${wordCount} words)`;
+                statusElement.className = 'status-new';
+            } else {
+                statusElement.textContent = `Ready to create new entry`;
+                statusElement.className = '';
+            }
         }
     }
     

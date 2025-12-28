@@ -38,10 +38,18 @@
                 <div class="editor-container">
                     <!-- Editor Actions -->
                     <div class="editor-actions">
-                        <button id="new-entry" class="btn-secondary">New</button>
-                        <button id="save-entry" class="btn-primary">Save</button>
-                        <button id="clear-editor" class="btn-secondary">Clear</button>
-                        <button id="analyze-entry" class="btn-secondary">Analyze</button>
+                        <button id="new-entry" class="btn-secondary" title="New Entry (Ctrl+N)">
+                            <span class="btn-icon">📝</span> New
+                        </button>
+                        <button id="save-entry" class="btn-primary" title="Save Entry (Ctrl+S)">
+                            <span class="btn-icon">💾</span> Save
+                        </button>
+                        <button id="clear-editor" class="btn-secondary" title="Clear Editor">
+                            <span class="btn-icon">🗑️</span> Clear
+                        </button>
+                        <button id="analyze-entry" class="btn-secondary" title="Analyze Entry">
+                            <span class="btn-icon">📊</span> Analyze
+                        </button>
                     </div>
                     
                     <!-- Text Editor -->
@@ -86,7 +94,7 @@
                         </div>
                         
                         <div class="search-container">
-                            <input type="text" id="entry-search" placeholder="Search..." class="search-input">
+                            <input type="text" id="entry-search" placeholder="Search entries..." class="search-input">
                         </div>
                     </div>
                     

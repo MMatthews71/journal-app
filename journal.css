@@ -288,6 +288,7 @@ body {
     color: var(--text-light);
     margin-bottom: 4px;
     font-size: 0.75rem;
+    font-weight: 500;
 }
 
 .entry-preview {
@@ -338,6 +339,12 @@ body {
     margin-bottom: 0;
 }
 
+/* Button icons */
+.btn-icon {
+    margin-right: 4px;
+    font-size: 0.9em;
+}
+
 /* Text Editor - Enhanced */
 .text-editor-container {
     flex-grow: 1;
@@ -377,6 +384,15 @@ body {
 #journal-editor::placeholder {
     color: var(--text-light);
     font-style: italic;
+}
+
+/* Style for timestamp line in editor */
+#journal-editor:first-line {
+    color: var(--journal-accent);
+    font-weight: 500;
+    font-size: 0.9em;
+    letter-spacing: 0.3px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
 
 /* Editor Stats */
@@ -455,6 +471,35 @@ body {
 .btn-small {
     padding: 4px 8px;
     font-size: 0.75rem;
+}
+
+/* Editor status styling */
+#editor-status {
+    font-size: 0.9rem;
+    color: var(--text-light);
+    font-weight: 500;
+}
+
+#editor-status.status-editing {
+    color: var(--journal-accent);
+    font-weight: 600;
+}
+
+#editor-status.status-new {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* Selected entry styling enhancement */
+.entry-item.selected .entry-date {
+    color: var(--journal-accent);
+    font-weight: 600;
+}
+
+/* Search input focus */
+.search-input:focus {
+    border-color: var(--journal-accent);
+    box-shadow: 0 0 0 2px rgba(44, 85, 48, 0.1);
 }
 
 /* Modal */
@@ -646,6 +691,25 @@ body {
     background: var(--text-color);
 }
 
+/* Scrollbar styling for editor */
+#journal-editor::-webkit-scrollbar {
+    width: 8px;
+}
+
+#journal-editor::-webkit-scrollbar-track {
+    background: var(--border-color);
+    border-radius: 4px;
+}
+
+#journal-editor::-webkit-scrollbar-thumb {
+    background: var(--text-light);
+    border-radius: 4px;
+}
+
+#journal-editor::-webkit-scrollbar-thumb:hover {
+    background: var(--text-color);
+}
+
 /* Focus styles for accessibility */
 button:focus-visible,
 input:focus-visible,
@@ -653,4 +717,85 @@ select:focus-visible,
 textarea:focus-visible {
     outline: 2px solid var(--journal-accent);
     outline-offset: 2px;
+}
+
+/* Keyboard shortcut hint */
+.editor-actions button {
+    position: relative;
+}
+
+.editor-actions button::after {
+    position: absolute;
+    bottom: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.7rem;
+    color: var(--text-light);
+    background: var(--card-bg);
+    padding: 2px 4px;
+    border-radius: 3px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    pointer-events: none;
+    white-space: nowrap;
+    border: 1px solid var(--border-color);
+}
+
+.editor-actions button:hover::after {
+    opacity: 1;
+}
+
+#new-entry::after {
+    content: 'Ctrl+N';
+}
+
+#save-entry::after {
+    content: 'Ctrl+S';
+}
+
+/* Animation for saving */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+.btn-primary:active {
+    animation: pulse 0.2s ease;
+}
+
+/* Modal timestamp preview */
+.modal-body .entry-preview {
+    background: var(--hover-bg);
+    padding: var(--spacing-s);
+    border-radius: var(--border-radius);
+    margin: var(--spacing-s) 0;
+    font-style: italic;
+    color: var(--text-color);
+    border-left: 3px solid var(--journal-accent);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+/* Timestamp styling */
+.timestamp-line {
+    color: var(--journal-accent);
+    font-weight: 500;
+    font-size: 0.9em;
+    letter-spacing: 0.3px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
+    opacity: 0.8;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 4px;
+    margin-bottom: 12px;
+    display: block;
+}
+
+/* Timestamp separator */
+#journal-editor:first-line {
+    color: var(--journal-accent);
+    font-weight: 500;
+    font-size: 0.9em;
+    letter-spacing: 0.3px;
+    font-family: 'Monaco', 'Menlo', 'Consolas', monospace;
 }
